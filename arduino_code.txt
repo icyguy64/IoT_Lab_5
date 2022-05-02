@@ -1,0 +1,40 @@
+Adafruit_GPS GPS;
+PulseOximeter pox;
+
+void setup() {
+  pinMode(A1, INPUT);
+  pinMode(2, OUTPUT);
+  pinMode(3, OUTPUT);
+  pinMode(7, OUTPUT);
+  Serial.begin(9600);
+}
+void loop() {
+  float temp = analogRead(A1) / 1023 * 5 * 100;
+  float h = digitalRead(7);
+  string spO2_res = "";
+  string hb_res = "";
+  string gpsResult = "";
+  if (Serial.available() > 0) {
+      gpsResult = GPS.read();
+      Serial.println(gpsResult);
+      if (pox.begin()) {
+          spO2_res = pox.getSpO2();
+          hb_res = pox.getHeartRate();
+      }
+      digitalWrite(3, HIGH);
+  } else {
+      gpsResult = "-1";
+      spO2_res = "-1";
+      hb_res = "-1";
+      digitalWrite(3, LOW);
+  }
+  
+  int analogResult = analogRead(A2);
+  Serial.write("GPS:," + gpsResult + ",temperature:," + to_string(temp) + ",Humidity:," + to_string(h) + ",ppm:," + to_string(analogResult) + ",this is oxygen percentage:," + spO2_res + ",this is heart rate:," + hb_res);
+  
+  if (Serial.availableMessage() != 0) {
+    string mystr = Serial.readMessage();
+    Serial.sendMessage(0, mystr);
+  }
+  delay(1000);
+}
